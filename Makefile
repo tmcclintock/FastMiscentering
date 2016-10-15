@@ -1,4 +1,4 @@
-OBJS = src/angular_integral.o
+OBJS = src/fast_misc.o
 
 CC = gcc
 ifdef notshared
@@ -8,7 +8,7 @@ CFLAGS =
 OFLAGS =
 endif
 else
-EXEC = src/c_angular_integral.so
+EXEC = src/c_fast_misc.so
 CFLAGS = -fPIC
 OFLAGS = -shared
 endif
@@ -27,5 +27,5 @@ $(EXEC): $(OBJS)
 .PHONY : clean
 
 clean:
-	rm -f $(OBJS) main.exe src/c_angular_integral.so
+	rm -f $(OBJS) main.exe src/c_fast_misc.so
 	rm -f *~
