@@ -39,7 +39,7 @@ double calc_Sigma_angular_at_R(double Rp,double Rl,double*R,double*Sigma,int NR,
     f = get_Sigma(x,Rl,Rp,R,Sigma,NR,Sspl,acc);
     sum += f;
   }
-  return w*sum/PI;
+  return w*sum/PI; // properly normalized
 }
 
 int calc_Sigma_angular(double Rp,double*R,double*Sigma,double*Sigma_angular,int NR,int N){
