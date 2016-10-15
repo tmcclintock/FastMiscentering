@@ -6,6 +6,7 @@
 
 #define PI 3.14159265358979
 #define TOL 1e-4
+#define key 4 //Rule for QAG
 #define ws_size 8000
 
 typedef struct integrand_params{
@@ -73,7 +74,9 @@ double calc_Sigma_misc_at_R(double Rp,integrand_params*params){
   F.params=params;
   double result,abserr;
   int status=0;
-  status=gsl_integration_qags(&F,lxlo-3,lxhi,TOL,TOL/10.,ws_size,ws,&result,&abserr);
+  status=gsl_integration_qag(&F,lxlo-3,lxhi,TOL,TOL/10.,
+			     ws_size,key,ws,&result,&abserr);
+  //status=gsl_integration_qags(&F,lxlo-3,lxhi,TOL,TOL/10.,ws_size,ws,&result,&abserr);
   //status=gsl_integration_qagi(&F,TOL,TOL/10.,ws_size,ws,&result,&abserr);
   //printf("res=%e\terr=%e\n",result,abserr);
   return result;

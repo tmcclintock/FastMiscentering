@@ -28,4 +28,4 @@ $(EXEC): $(OBJS)
 
 clean:
 	rm -f $(OBJS) main.exe src/c_fast_misc.so
-	rm -f *~
+	rm -f *~ src/*~ src/*.pyc
