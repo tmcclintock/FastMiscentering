@@ -1,9 +1,6 @@
 """
 An example of how to interface with 
 fast_miscentering.
-
-At the moment only the angular integral is
-implemented.
 """
 import sys,time
 import fast_miscentering as fm
