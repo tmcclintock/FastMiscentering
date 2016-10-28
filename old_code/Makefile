@@ -1,4 +1,4 @@
-OBJS = src/fast_misc.o
+OBJS = fast_miscentering.o
 
 CC = gcc
 ifdef notshared
@@ -8,13 +8,13 @@ CFLAGS =
 OFLAGS =
 endif
 else
-EXEC = src/c_fast_misc.so
+EXEC = fast_miscentering.so
 CFLAGS = -fPIC
 OFLAGS = -shared
 endif
 
-INCL = -I/home/tom/code/gsl/include/ -fopenmp -O3
-LIBS = -lgsl -lgslcblas -L/home/tom/code/gsl/lib -lm -fopenmp -O3
+INCL = -I/${GSLI} -fopenmp -O3
+LIBS = -lgsl -lgslcblas -L/${GSLL} -lm -fopenmp -O3
 .SUFFIXES : .c .o
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCL) -c $< -o $@
@@ -27,5 +27,5 @@ $(EXEC): $(OBJS)
 .PHONY : clean
 
 clean:
-	rm -f $(OBJS) main.exe src/c_fast_misc.so
-	rm -f *~ src/*~ src/*.pyc
+	rm -f $(OBJS) main.exe fast_miscentering.so
+	rm -f *~ src/*~ *.pyc

@@ -4,9 +4,10 @@ This interfaces through c_types so that the user
 doesn't have to.
 """
 import numpy as np
-import ctypes
+import ctypes, os, inspect
 from ctypes import c_double,c_int,POINTER,cdll
-cfmlib = cdll.LoadLibrary("src/c_fast_misc.so")
+sopath = os.path.join(os.path.dirname(__file__),"_fast_miscentering.so")
+cfmlib = cdll.LoadLibrary(sopath)
 
 def calc_Sigma_miscentered(Rm,R,Sigma,N=5):
     cfm = cfmlib.calc_Sigma_misc
