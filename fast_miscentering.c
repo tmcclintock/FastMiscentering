@@ -18,6 +18,7 @@ typedef struct integrand_params{
   double*R;double*Sigma;
   int NR;int N;
   double alpha,A; //Power law variables
+  double *u; //Critical points for angular integral
 }integrand_params;
 
 
@@ -36,16 +37,13 @@ double get_Sigma(double u,double x,double Rm,double Rp,
 }
 
 double calc_Sigma_ang(double x,double Rm,double Rp,
-		      double*R,double*Sigma,int NR,int N,
+		      double*R,double*Sigma,int NR,int N,double*u,
 		      double alpha, double A,
 		      gsl_spline*Sspl,gsl_interp_accel*acc){
-  double u,f,w = PI/N,sum = 0;
+  double sum = 0;
   int i;
-  for(i=1;i<=N;i++){
-    u = cos((i-0.5)*w);
-    f = get_Sigma(u,x,Rm,Rp,R,Sigma,NR,alpha,A,Sspl,acc);
-    sum += f;
-  }
+  for(i=0;i<N;i++)
+    sum += get_Sigma(u[i],x,Rm,Rp,R,Sigma,NR,alpha,A,Sspl,acc);
   return sum;
 }
 
@@ -59,7 +57,8 @@ double integrand(double lx,void*pars){
   gsl_interp_accel*acc=params->acc;
   int NR=params->NR,N=params->N;
   double alpha=params->alpha,A=params->A;
-  double ret = x*exp(-x)*calc_Sigma_ang(x,Rm,Rp,R,Sigma,NR,N,alpha,A,Sspl,acc);
+  double*u=params->u;
+  double ret = x*exp(-x)*calc_Sigma_ang(x,Rm,Rp,R,Sigma,NR,N,u,alpha,A,Sspl,acc);
   return ret;
 }
 
@@ -83,6 +82,8 @@ double calc_Sigma_misc_at_R(double Rp,integrand_params*params){
 
 int calc_Sigma_misc(double Rm,double*R,double*Sigma,
 		      double*Sigma_misc,int NR,int N){
+  int i;
+
   gsl_spline*Sspl=gsl_spline_alloc(gsl_interp_cspline,NR);
   gsl_spline_init(Sspl,R,Sigma,NR);
   gsl_interp_accel*acc= gsl_interp_accel_alloc();
@@ -104,7 +105,12 @@ int calc_Sigma_misc(double Rm,double*R,double*Sigma,
   params->alpha = log(Sigma[1]/Sigma[0])/log(R[1]/R[0]);
   params->A = Sigma[0]/pow(R[0],params->alpha);
 
-  int i;
+  double*u=malloc(sizeof(double)*N);
+  double w = PI/N;
+  for (i=0;i<N;i++)
+    u[i] = cos((i+0.5)*w);
+  params->u=u;
+
   //#pragma omp parallel shared(Rm,R,Sigma,Sigma_misc,NR,N)
   //#pragma omp for
   for(i=0;i<NR;i++){
