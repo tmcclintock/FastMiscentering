@@ -17,18 +17,17 @@ typedef struct integrand_params{
   double Rm;double Rp;
   double*R;double*Sigma;
   int NR;int N;
+  double alpha,A; //Power law variables
 }integrand_params;
 
 
 //Sigma(R)
 double get_Sigma(double u,double x,double Rm,double Rp,
-		 double*R,double*Sigma,int NR,gsl_spline*Sspl,gsl_interp_accel*acc){
+		 double*R,double*Sigma,int NR,double alpha,double A,
+		 gsl_spline*Sspl,gsl_interp_accel*acc){
   double prod = 2*Rm*Rm*x;
   double arg = sqrt(Rp*Rp+prod+2*Rp*sqrt(prod)*u);
-  double alpha,A;
   if (arg < R[0]){// Assume power law at extremes
-    alpha = log(Sigma[1]/Sigma[0])/log(R[1]/R[0]);
-    A = Sigma[0]/pow(R[0],alpha);
     return A*pow(arg,alpha);
   }else if (arg > R[NR-1]){
     return 0.0;//Sigma(R) is zero or negative at large R
@@ -38,12 +37,13 @@ double get_Sigma(double u,double x,double Rm,double Rp,
 
 double calc_Sigma_ang(double x,double Rm,double Rp,
 		      double*R,double*Sigma,int NR,int N,
+		      double alpha, double A,
 		      gsl_spline*Sspl,gsl_interp_accel*acc){
   double u,f,w = PI/N,sum = 0;
   int i;
   for(i=1;i<=N;i++){
     u = cos((i-0.5)*w);
-    f = get_Sigma(u,x,Rm,Rp,R,Sigma,NR,Sspl,acc);
+    f = get_Sigma(u,x,Rm,Rp,R,Sigma,NR,alpha,A,Sspl,acc);
     sum += f;
   }
   return sum;
@@ -58,27 +58,26 @@ double integrand(double lx,void*pars){
   gsl_spline*Sspl=params->Sspl;
   gsl_interp_accel*acc=params->acc;
   int NR=params->NR,N=params->N;
-  double ret = x*exp(-x)*calc_Sigma_ang(x,Rm,Rp,R,Sigma,NR,N,Sspl,acc);
+  double alpha=params->alpha,A=params->A;
+  double ret = x*exp(-x)*calc_Sigma_ang(x,Rm,Rp,R,Sigma,NR,N,alpha,A,Sspl,acc);
   return ret;
 }
 
 double calc_Sigma_misc_at_R(double Rp,integrand_params*params){
   params->Rp=Rp;
-  double*R=params->R;
-  int NR=params->NR;
-  double lxlo=params->lxlo;
-  double lxhi=params->lxhi;
+  //double lxlo=params->lxlo;
+  //double lxhi=params->lxhi;
   gsl_integration_workspace*ws=params->workspace;
   gsl_function F;
   F.function=&integrand;
   F.params=params;
   double result,abserr;
   int status=0;
-  status=gsl_integration_qag(&F,lxlo-3,lxhi,TOL,TOL/10.,
-			     ws_size,key,ws,&result,&abserr);
-  //status=gsl_integration_qags(&F,lxlo-3,lxhi,TOL,TOL/10.,ws_size,ws,&result,&abserr);
-  //status=gsl_integration_qagi(&F,TOL,TOL/10.,ws_size,ws,&result,&abserr);
+  status|=gsl_integration_qag(&F,-10,+20,TOL,TOL/10.,ws_size,key,ws,&result,&abserr);
+  //status=gsl_integration_qag(&F,lxlo-3,lxhi,TOL,TOL/10.,ws_size,key,ws,&result,&abserr);
   //printf("res=%e\terr=%e\n",result,abserr);
+  if (status)
+    return -1e9;
   return result;
 }
 
@@ -101,13 +100,16 @@ int calc_Sigma_misc(double Rm,double*R,double*Sigma,
   params->R=R,params->Sigma=Sigma;
   params->NR=NR,params->N=N;
 
+  //Calculate the power law at small radii
+  params->alpha = log(Sigma[1]/Sigma[0])/log(R[1]/R[0]);
+  params->A = Sigma[0]/pow(R[0],params->alpha);
+
   int i;
   //#pragma omp parallel shared(Rm,R,Sigma,Sigma_misc,NR,N)
   //#pragma omp for
   for(i=0;i<NR;i++){
     //printf("%d\t%e\t",i,R[i]);
     Sigma_misc[i]=calc_Sigma_misc_at_R(R[i],params)/N;
-    //printf("%e\n",Sigma_misc[i]);
   }
   gsl_spline_free(Sspl),gsl_interp_accel_free(acc);
   gsl_integration_workspace_free(workspace);
