@@ -1,3 +1,8 @@
+# setup.py install directories
+build/
+dist/
+fast_miscentering.egg-info/
+
 # Emacs backup files
 *~
 
