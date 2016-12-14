@@ -24,8 +24,8 @@ print (Sigma_mis[:10]/SM[:10])
 
 import matplotlib.pyplot as plt
 plt.loglog(R,Sigma,label=r"$\Sigma_{\rm centered}(R)$")
-plt.loglog(R,SM,ls='-.',label="old")
 plt.loglog(R,Sigma_mis,label=r"$\Sigma_{\rm Miscentered}(R)$")
+plt.loglog(R,SM,'k--',label="old")
 plt.legend()
 plt.ylabel(R"$\Sigma(R)\ [h{\rm M_\odot/Mpc^2}]$",fontsize=24)
 plt.xlabel(r"$R\ [h^{-1}{\rm Mpc}]$",fontsize=24)
